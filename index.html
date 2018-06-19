@@ -135,9 +135,9 @@ function queueComplete(event) {
 }
 
 function initLevel(newLevel) {
-  lvlPieces = [{'rows':3,'columns':3},];
+  lvlPieces = [{'rows':2,'columns':2},];
   lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],];
-  lvlDesc = [['Ο Μέγος Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ'],['Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος']];
+  lvlDesc = [['Ο Μέγος Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],];
   lvlRows = lvlPieces[newLevel]['rows'];
   lvlColumns = lvlPieces[newLevel]['columns'];
   lvlImageLeft = lvlImages[newLevel][0];
@@ -157,7 +157,6 @@ function cropImage(imageName){
       var croppedImage = new createjs.Bitmap(imgByName(imageName));
       croppedHeight = croppedImage.image.height/lvlRows;
       croppedWidth  = croppedImage.image.width /lvlColumns;
-      console.log(croppedWidth,croppedImage.image.src);
       croppedImage.sourceRect = new createjs.Rectangle(j*croppedWidth,i*croppedHeight,croppedWidth,croppedHeight);
       croppedImage.regX = croppedWidth/2;
       croppedImage.regY = croppedHeight/2;
@@ -229,6 +228,17 @@ function resize() {
   leftBox.scaleX = stage.canvas.width/1200;
   leftBox.scaleY = stage.canvas.height/676;
   leftCont.addChild(leftBox);
+  leftTextBox.graphics.clear();
+  leftTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height, leftBox.image.width*leftBox.scaleX, 80/676*stage.canvas.height,stage.canvas.width/100);
+  leftCont.addChild(leftTextBox);
+
+  var leftText = new createjs.Text(lvlDesc[level][0],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+  leftText.textAlign = "center";
+  leftText.textBaseline = "middle";
+
+  leftText.x = 214/1200*stage.canvas.width;
+  leftText.y = 500/676*stage.canvas.height;
+  leftCont.addChild(leftText);
 
   rightCont.x = 730/1200*stage.canvas.width;
   rightCont.y = 30/676*stage.canvas.height;
@@ -238,6 +248,18 @@ function resize() {
   rightBox.scaleX = stage.canvas.width/1200;
   rightBox.scaleY = stage.canvas.height/676;
   rightCont.addChild(rightBox);
+  rightTextBox.graphics.clear();
+
+  rightTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height,rightBox.image.width*rightBox.scaleX,80/676*stage.canvas.height,stage.canvas.width/100);
+  rightCont.addChild(rightTextBox);
+  console.log(lvlDesc[level][1]);
+  var rightText = new createjs.Text(lvlDesc[level][1],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+  rightText.textAlign = "center";
+  rightText.textBaseline = "middle";
+
+  rightText.x = 214/1200*stage.canvas.width;
+  rightText.y = 500/676*stage.canvas.height;
+  rightCont.addChild(rightText);
 
   
   for (var i=0; i<lvlRows; i++){
