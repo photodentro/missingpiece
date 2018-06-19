@@ -50,13 +50,22 @@
   var rightBox;
   var leftTextBox;
   var rightTextBox;
+  var leftText;
+  var rightText;  
   var lvlRows;
   var lvlColumns;
   var lvlPieces;
+  var lvlPositions;
   var cil;
   var cir;
   var croppedWidth;
   var croppedHeight;
+
+  function _distance(p1, p2) {
+      var dx = p1.x - p2.x;
+      var dy = p1.y - p2.y;
+      return Math.sqrt(dx * dx + dy * dy);
+  }
 
 
   function init(){
@@ -121,11 +130,11 @@ function queueComplete(event) {
   leftBox = new createjs.Bitmap(imgByName("box.svg"));
   leftCont.addChild(leftBox);
   leftTextBox = new createjs.Shape();
-
   rightCont = new createjs.Container();
   rightBox = new createjs.Bitmap(imgByName("box.svg"));
   rightCont.addChild(rightBox);
   rightTextBox = new createjs.Shape();
+
   stage.update();
   initLevel(0);
   resize();
@@ -133,15 +142,69 @@ function queueComplete(event) {
 }
 
 function initLevel(newLevel) {
-  lvlPieces = [{'rows':2,'columns':2},];
+  lvlPieces = [{'rows':10,'columns':10},];
   lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],];
-  lvlDesc = [['Ο Μέγος Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],];
+  lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],];
+  lvlPositions = [[{'x':600,'y':160},{'x':600,'y':450}],];
   lvlRows = lvlPieces[newLevel]['rows'];
   lvlColumns = lvlPieces[newLevel]['columns'];
   lvlImageLeft = lvlImages[newLevel][0];
   lvlImageRight = lvlImages[newLevel][1];
   cil = cropImage(lvlImageLeft);
   cir = cropImage(lvlImageRight);
+  leftText = new createjs.Text(lvlDesc[level][0],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+  rightText = new createjs.Text(lvlDesc[level][1],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+
+  //mark the missing pieces of the left side
+  for (var i=0; i<lvlRows; i++){
+    for (var j=0; j<lvlColumns; j++){
+      cil[i][j].inPlace = true;
+    }
+  }
+  var possiblePositions = lvlPositions[level];
+  for (var i=0; i<lvlPositions[level].length/2; i++){
+      var randomPieces = [];
+      var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
+      while (randomPieces.indexOf(randomPiece)>=0){
+        randomPiece = Math.random(lvlRows*lvlColumns);
+      }
+      randomPieces.push(randomPiece);
+      var randomRow = Math.floor(randomPiece / lvlColumns);
+      var randomCol = randomPiece % lvlColumns;
+      cil[randomRow][randomCol].inPlace = false;
+      var aPosition = Math.floor(Math.random()*possiblePositions.length);
+      cil[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
+      cil[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];
+      possiblePositions.splice(aPosition,1);
+  }
+
+  //mark the missing pieces of the right side
+  for (var i=0; i<lvlRows; i++){
+    for (var j=0; j<lvlColumns; j++){
+      cir[i][j].inPlace = true;
+    }
+  }
+  for (var i=0; i<lvlPositions[level].length/2; i++){
+      console.log("inhere");
+      console.log(i);
+      var randomPieces = [];
+      var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
+      while (randomPieces.indexOf(randomPiece)>=0){
+        randomPiece = Math.random(lvlRows*lvlColumns);
+      }
+      randomPieces.push(randomPiece);
+      var randomRow = Math.floor(randomPiece / lvlColumns);
+      var randomCol = randomPiece % lvlColumns;
+      cir[randomRow][randomCol].inPlace = false;
+      var aPosition = Math.floor(Math.random()*possiblePositions.length);
+      cir[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
+      cir[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];
+      possiblePositions.splice(aPosition,1);
+
+  }
+
+
+
 
 }
 
@@ -159,9 +222,26 @@ function cropImage(imageName){
       croppedImage.regX = croppedWidth/2;
       croppedImage.regY = croppedHeight/2;
       croppedImage.on('pressmove',function(e){
-        e.target.x = e.stageX;
-        e.target.y = e.stageY;
-        stage.update();
+        if (!e.target.inPlace){
+          e.target.x = e.stageX;
+          e.target.y = e.stageY;
+          stage.update();
+        }
+      });
+      croppedImage.on('pressup',function(e){
+      var curP = new createjs.Point(e.stageX,e.stageY);
+      var tarP = new createjs.Point(e.target.correctX,e.target.correctY);
+      var dist = _distance(curP,tarP);
+      if (dist < stage.canvas.width/30){
+        e.target.x = e.target.correctX;
+        e.target.y = e.target.correctY;
+        e.target.inPlace = true;
+      }
+      else{
+        e.target.x = e.target.origX/1200*stage.canvas.width;
+        e.target.y = e.target.origY/676*stage.canvas.height;
+      }
+      stage.update();
       });
       croppedImage.croppedWidth = croppedWidth;
       croppedImage.croppedHeight = croppedHeight;
@@ -230,12 +310,13 @@ function resize() {
   leftTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height, leftBox.image.width*leftBox.scaleX, 80/676*stage.canvas.height,stage.canvas.width/100);
   leftCont.addChild(leftTextBox);
 
-  var leftText = new createjs.Text(lvlDesc[level][0],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+  
   leftText.textAlign = "center";
   leftText.textBaseline = "middle";
 
   leftText.x = 214/1200*stage.canvas.width;
   leftText.y = 500/676*stage.canvas.height;
+  leftText.font = parseInt(stage.canvas.height/30) + 'px Arial';
   leftCont.addChild(leftText);
 
   rightCont.x = 730/1200*stage.canvas.width;
@@ -251,12 +332,13 @@ function resize() {
   rightTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height,rightBox.image.width*rightBox.scaleX,80/676*stage.canvas.height,stage.canvas.width/100);
   rightCont.addChild(rightTextBox);
   console.log(lvlDesc[level][1]);
-  var rightText = new createjs.Text(lvlDesc[level][1],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
+
   rightText.textAlign = "center";
   rightText.textBaseline = "middle";
 
   rightText.x = 214/1200*stage.canvas.width;
   rightText.y = 500/676*stage.canvas.height;
+  rightText.font = parseInt(stage.canvas.height/30) + 'px Arial';
   rightCont.addChild(rightText);
 
   
@@ -269,11 +351,22 @@ function resize() {
       var sc = Math.min(scaleHor,scaleVer);
       cil[i][j].scaleX = sc;
       cil[i][j].scaleY = sc;
-      cil[i][j].x = 1.5*leftCont.x + j*sc*(cil[i][j].croppedWidth)+sc*cil[i][j].croppedWidth/2;
-      cil[i][j].y = 2*leftCont.y + i*sc*(cil[i][j].croppedHeight)+sc*cil[i][j].croppedHeight/2;
+      cil[i][j].correctX = 1.5*leftCont.x + j*sc*(cil[i][j].croppedWidth)+sc*cil[i][j].croppedWidth/2 - 1;
+      cil[i][j].correctY = 2*leftCont.y + i*sc*(cil[i][j].croppedHeight)+sc*cil[i][j].croppedHeight/2 - 1;
+      if (cil[i][j].inPlace){
+        cil[i][j].x = cil[i][j].correctX;
+        cil[i][j].y = cil[i][j].correctY;
+      }
+      else{
+        cil[i][j].x = cil[i][j].origX/1200*stage.canvas.width;
+        cil[i][j].y = cil[i][j].origY/676*stage.canvas.height;        
+      }
       stage.addChild(cil[i][j]);
     }
   }
+
+
+
 
 
   for (var i=0; i<lvlRows; i++){
@@ -285,8 +378,16 @@ function resize() {
       var sc = Math.min(scaleHor,scaleVer);
       cir[i][j].scaleX = sc;
       cir[i][j].scaleY = sc;
-      cir[i][j].x = rightCont.x + 0.5*leftCont.x + j*sc*(cir[i][j].croppedWidth)+sc*cir[i][j].croppedWidth/2;
-      cir[i][j].y = rightCont.y + 1*leftCont.y + i*sc*(cir[i][j].croppedHeight)+sc*cir[i][j].croppedHeight/2;
+      cir[i][j].correctX = rightCont.x + 0.5*leftCont.x + j*sc*(cir[i][j].croppedWidth)+sc*cir[i][j].croppedWidth/2 - 1;
+      cir[i][j].correctY = rightCont.y + 1*leftCont.y + i*sc*(cir[i][j].croppedHeight)+sc*cir[i][j].croppedHeight/2 - 1;
+      if (cir[i][j].inPlace){
+        cir[i][j].x = cir[i][j].correctX;
+        cir[i][j].y = cir[i][j].correctY;
+      }
+      else{
+        cir[i][j].x = cir[i][j].origX/1200*stage.canvas.width;
+        cir[i][j].y = cir[i][j].origY/676*stage.canvas.height;
+      }
       stage.addChild(cir[i][j]);
     }
   }
