@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <!-- Using this metatag users can't scale the page using pinchIn/out gestures on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>Παιχνίδι μνήμης</title> 
+  <title>Συμπληρώστε τους πίνακες</title> 
   <!--REMEMEBER TO RESTORE
   <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>-->
   <script src="createjs-2015.11.26.min.js"></script>  
@@ -35,7 +35,7 @@
   </canvas>
 <script>
   var stage;
-  var resourceNames = ["background","bar_help","bar_home", "bar_previous", "bar_next"];
+  var resourceNames = ["bar_help.svg","bar_home.svg", "bar_previous.svg", "bar_next.svg", "box.svg", "theofilosMA.png", "eggonopoulosMA.png"];
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -45,7 +45,20 @@
   var menubar = [];
   var lvlText = "1";
   var level = 0; 
-  var bg;
+  var contBg;
+  var leftCont;
+  var rightCont;
+  var leftBox;
+  var rightBox;
+  var leftTextBox;
+  var rightTextBox;
+  var lvlRows;
+  var lvlColumns;
+  var lvlPieces;
+  var cil;
+  var cir;
+  var croppedWidth;
+  var croppedHeight;
 
 
   function init(){
@@ -57,7 +70,7 @@
     for (var i = 0; i < resourceNames.length; i++) {
 
       resources[i] = new Image();
-      resources[i].src = "resource/" + resourceNames[i] + ".svg";
+      resources[i].src = "resource/" + resourceNames[i];
       resources[i].onload = queueFileLoad;
 
     }
@@ -78,13 +91,15 @@ function queueFileLoad(event) {
 
 function queueComplete(event) {
   console.log("Finished loading resources");
-  bg = new createjs.Bitmap(imgByName("background"));
-  stage.addChild(bg);
-  
+  contBg = new createjs.Container();
+  var bgShape = new createjs.Shape();
+  bgShape.graphics.beginFill("#444444").drawRect(0,0,stage.canvas.width,stage.canvas.height);
+  contBg.addChild(bgShape);
+  stage.addChild(contBg);  
   var onMenuClick = [onMenuHelp, onMenuHome, onMenuPrevious, onMenuNext];
   for (i = 0; i < 4; i++) {
 
-    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf('bar_help')+i]);
+    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf('bar_help.svg')+i]);
     menubar[i].addEventListener("click", onMenuClick[i]);
     menubar[i].addEventListener("mouseover", function(event) {
         // Bring the target on top in its container, mostly for the rotation animation
@@ -104,6 +119,15 @@ function queueComplete(event) {
   lvlText.textBaseline = "middle";
   stage.addChild(lvlText);
 
+  leftCont = new createjs.Container();
+  leftBox = new createjs.Bitmap(imgByName("box.svg"));
+  leftCont.addChild(leftBox);
+  leftTextBox = new createjs.Shape();
+
+  rightCont = new createjs.Container();
+  rightBox = new createjs.Bitmap(imgByName("box.svg"));
+  rightCont.addChild(rightBox);
+  rightTextBox = new createjs.Shape();
   stage.update();
   initLevel(0);
   resize();
@@ -111,7 +135,44 @@ function queueComplete(event) {
 }
 
 function initLevel(newLevel) {
+  lvlPieces = [{'rows':3,'columns':3},];
+  lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],];
+  lvlDesc = [['Ο Μέγος Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ'],['Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος']];
+  lvlRows = lvlPieces[newLevel]['rows'];
+  lvlColumns = lvlPieces[newLevel]['columns'];
+  lvlImageLeft = lvlImages[newLevel][0];
+  lvlImageRight = lvlImages[newLevel][1];
+  cil = cropImage(lvlImageLeft);
+  cir = cropImage(lvlImageRight);
+
 }
+
+function cropImage(imageName){
+  //takes the image name and gives four cropped draggable objects
+  
+  croppedImages = [];
+  for (var i=0; i<lvlRows; i++){
+    croppedImages.push([]);
+    for (var j=0; j<lvlColumns; j++){
+      var croppedImage = new createjs.Bitmap(imgByName(imageName));
+      croppedHeight = croppedImage.image.height/lvlRows;
+      croppedWidth  = croppedImage.image.width /lvlColumns;
+      console.log(croppedWidth,croppedImage.image.src);
+      croppedImage.sourceRect = new createjs.Rectangle(j*croppedWidth,i*croppedHeight,croppedWidth,croppedHeight);
+      croppedImage.regX = croppedWidth/2;
+      croppedImage.regY = croppedHeight/2;
+      croppedImage.on('pressmove',function(e){
+        e.target.x = e.stageX;
+        e.target.y = e.stageY;
+        stage.update();
+      });
+      croppedImage.croppedWidth = croppedWidth;
+      croppedImage.croppedHeight = croppedHeight;
+      croppedImages[croppedImages.length-1].push(croppedImage);
+    }
+  }
+  return(croppedImages);
+  }
 
 function resize() {
   // Resize the canvas element
@@ -123,6 +184,13 @@ function resize() {
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = stage.canvas.width / ratio;
   }
+  // Fill all the canvas with the background
+  
+  var bgShape = new createjs.Shape();
+  bgShape.graphics.beginFill('#444444').drawRect(0,0,stage.canvas.width,stage.canvas.height);
+  contBg.addChild(bgShape);
+  stage.addChild(contBg);
+
   var bbs = stage.canvas.height / 10;  // bar button size
 
   var bbm = bbs / 5;  // bar button margin
@@ -143,16 +211,66 @@ function resize() {
     // These copies are used to preserve the original scale on mouseover
     menubar[i].savedscaleX = menubar[i].scaleX;
     menubar[i].savedscaleY = menubar[i].scaleY;
+    stage.addChild(menubar[i]);
   }
 
   lvlText.text = level + 1;
   lvlText.x = (3 + 1)*bbm + bbs/2 + 3*bbs;
   lvlText.y = stage.canvas.height - bbm/2 - bbs/2;
   lvlText.font = parseInt(2*bbs/2) + "px Arial";
+  stage.addChild(lvlText);
 
-  // Fill all the canvas with the background
-  bg.scaleX = stage.canvas.width / bg.image.width;
-  bg.scaleY = stage.canvas.height / bg.image.height;
+
+  leftCont.x = 40/1200*stage.canvas.width;
+  leftCont.y = 30/676*stage.canvas.height;
+  stage.addChild(leftCont);
+  leftBox.x = 0;
+  leftBox.y = 0;
+  leftBox.scaleX = stage.canvas.width/1200;
+  leftBox.scaleY = stage.canvas.height/676;
+  leftCont.addChild(leftBox);
+
+  rightCont.x = 730/1200*stage.canvas.width;
+  rightCont.y = 30/676*stage.canvas.height;
+  stage.addChild(rightCont);
+  rightBox.x = 0;
+  rightBox.y = 0;
+  rightBox.scaleX = stage.canvas.width/1200;
+  rightBox.scaleY = stage.canvas.height/676;
+  rightCont.addChild(rightBox);
+
+  
+  for (var i=0; i<lvlRows; i++){
+    for (var j=0; j<lvlColumns; j++){
+      var dw = 380*stage.canvas.width/1200;
+      var dh = 400*stage.canvas.height/676;
+      var scaleHor = dw/cil[i][j].image.width;
+      var scaleVer = dh/cil[i][j].image.height;
+      var sc = Math.min(scaleHor,scaleVer);
+      cil[i][j].scaleX = sc;
+      cil[i][j].scaleY = sc;
+      cil[i][j].x = 1.5*leftCont.x + j*sc*(cil[i][j].croppedWidth)+sc*cil[i][j].croppedWidth/2;
+      cil[i][j].y = 2*leftCont.y + i*sc*(cil[i][j].croppedHeight)+sc*cil[i][j].croppedHeight/2;
+      stage.addChild(cil[i][j]);
+    }
+  }
+
+
+  for (var i=0; i<lvlRows; i++){
+    for (var j=0; j<lvlColumns; j++){
+      var dw = 380*stage.canvas.width/1200;
+      var dh = 400*stage.canvas.height/676;
+      var scaleHor = dw/cir[i][j].image.width;
+      var scaleVer = dh/cir[i][j].image.height;
+      var sc = Math.min(scaleHor,scaleVer);
+      cir[i][j].scaleX = sc;
+      cir[i][j].scaleY = sc;
+      cir[i][j].x = rightCont.x + 0.5*leftCont.x + j*sc*(cir[i][j].croppedWidth)+sc*cir[i][j].croppedWidth/2;
+      cir[i][j].y = rightCont.y + 1*leftCont.y + i*sc*(cir[i][j].croppedHeight)+sc*cir[i][j].croppedHeight/2;
+      stage.addChild(cir[i][j]);
+    }
+  }
+
   stage.update();
 }
 
@@ -166,11 +284,11 @@ function onMenuHome(event) {
 }
 
 function onMenuPrevious(event) {
-  initLevel((level+4) % 5);
+  initLevel((level+lvlPieces.length - 1) % lvlPieces.length);
 }
 
 function onMenuNext(event) {
-  initLevel((level+1) % 5);
+  initLevel((level+1) % lvlPieces.length);
 }
 
 </script>
