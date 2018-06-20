@@ -1,4 +1,4 @@
-<!doctype html> 
+f<!doctype html> 
 <!-- Copyright (C) 2018 Alkis Georgopoulos <alkisg@gmail.com>. License: GPLv3. -->
 <html lang="el"> 
 <head> 
@@ -33,7 +33,9 @@
   </canvas>
 <script>
   var stage;
-  var resourceNames = ["bar_help.svg","bar_home.svg", "bar_previous.svg", "bar_next.svg", "box.svg", "theofilosMA.png", "eggonopoulosMA.png"];
+  var bgShape;
+  var statusText;
+  var resourceNames = ["bar_help.svg","bar_home.svg", "bar_previous.svg", "bar_next.svg", "box.svg", "theofilosMA.png", "eggonopoulosMA.png", "ColorfulArchitecture.jpg", "TempleGardens.jpg"];
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -72,7 +74,19 @@
     console.clear();
     stage = new createjs.Stage("mainCanvas");
     stage.enableMouseOver();
+    contBg = new createjs.Container();
+    bgShape = new createjs.Shape();
+    bgShape.graphics.beginFill("#444444").drawRect(0,0,stage.canvas.width,stage.canvas.height);
+    contBg.addChild(bgShape);
+
+    statusText = new createjs.Text("Φόρτωση...", "20px Arial", "black");
+    statusText.textAlign = "center";
+    statusText.textBaseline = "middle";
+    contBg.addChild(statusText);
+
+    stage.addChild(contBg);  
     
+
     // Resource preloading
     for (var i = 0; i < resourceNames.length; i++) {
 
@@ -91,6 +105,7 @@ function imgByName(name) {
 
 function queueFileLoad(event) {
   resourcesLoaded++;
+  statusText.text = "Φόρτωση " + parseInt(100*resourcesLoaded/resourceNames.length) + " %";
   stage.update();
   if (resourcesLoaded == resourceNames.length)
     queueComplete(event);
@@ -98,11 +113,7 @@ function queueFileLoad(event) {
 
 function queueComplete(event) {
   console.log("Finished loading resources");
-  contBg = new createjs.Container();
-  var bgShape = new createjs.Shape();
-  bgShape.graphics.beginFill("#444444").drawRect(0,0,stage.canvas.width,stage.canvas.height);
-  contBg.addChild(bgShape);
-  stage.addChild(contBg);  
+
   var onMenuClick = [onMenuHelp, onMenuHome, onMenuPrevious, onMenuNext];
   for (i = 0; i < 4; i++) {
 
@@ -137,15 +148,18 @@ function queueComplete(event) {
 
   stage.update();
   initLevel(0);
-  resize();
   window.addEventListener('resize', resize, false);
 }
 
 function initLevel(newLevel) {
-  lvlPieces = [{'rows':10,'columns':10},];
-  lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],];
-  lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],];
-  lvlPositions = [[{'x':600,'y':160},{'x':600,'y':450}],];
+  level = newLevel;
+  lvlPieces = [{'rows':2,'columns':2},
+    {'rows':5,'columns':5}];
+  lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],
+    ['TempleGardens.jpg','ColorfulArchitecture.jpg']];
+  lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],
+    ["Temple Gardens\nPaul Klee","Colorful Architecture\nPaul Klee"]];
+  lvlPositions = [2,6];
   lvlRows = lvlPieces[newLevel]['rows'];
   lvlColumns = lvlPieces[newLevel]['columns'];
   lvlImageLeft = lvlImages[newLevel][0];
@@ -161,8 +175,7 @@ function initLevel(newLevel) {
       cil[i][j].inPlace = true;
     }
   }
-  var possiblePositions = lvlPositions[level];
-  for (var i=0; i<lvlPositions[level].length/2; i++){
+  for (var i=0; i<lvlPositions[level]/2; i++){
       var randomPieces = [];
       var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
       while (randomPieces.indexOf(randomPiece)>=0){
@@ -172,10 +185,13 @@ function initLevel(newLevel) {
       var randomRow = Math.floor(randomPiece / lvlColumns);
       var randomCol = randomPiece % lvlColumns;
       cil[randomRow][randomCol].inPlace = false;
-      var aPosition = Math.floor(Math.random()*possiblePositions.length);
-      cil[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
-      cil[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];
-      possiblePositions.splice(aPosition,1);
+      cil[randomRow][randomCol].origX = 600 - Math.random()*20 + Math.random()*20;
+      cil[randomRow][randomCol].origY = 335 - Math.random()*200 + Math.random()*200;
+
+
+      /*cil[randomRow][randomCol].origX = 2100/1200*stage.canvas.width + Math.random()*(258/1200*stage.canvas.width);
+      cil[randomRow][randomCol].origY = 2*stage.canvas.height + Math.random()*(750/676*stage.canvas.height) - 750/676*stage.canvas.height;*/
+      //possiblePositions.splice(aPosition,1);
   }
 
   //mark the missing pieces of the right side
@@ -184,9 +200,7 @@ function initLevel(newLevel) {
       cir[i][j].inPlace = true;
     }
   }
-  for (var i=0; i<lvlPositions[level].length/2; i++){
-      console.log("inhere");
-      console.log(i);
+  for (var i=0; i<lvlPositions[level]/2; i++){
       var randomPieces = [];
       var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
       while (randomPieces.indexOf(randomPiece)>=0){
@@ -196,14 +210,16 @@ function initLevel(newLevel) {
       var randomRow = Math.floor(randomPiece / lvlColumns);
       var randomCol = randomPiece % lvlColumns;
       cir[randomRow][randomCol].inPlace = false;
-      var aPosition = Math.floor(Math.random()*possiblePositions.length);
-      cir[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
-      cir[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];
-      possiblePositions.splice(aPosition,1);
+      //var aPosition = Math.floor(Math.random()*possiblePositions.length);
+      cir[randomRow][randomCol].origX = 600;
+      cir[randomRow][randomCol].origY = 335;
+      /*cir[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
+      cir[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];*/
+      //possiblePositions.splice(aPosition,1);
 
   }
 
-
+  resize();
 
 
 }
@@ -222,6 +238,7 @@ function cropImage(imageName){
       croppedImage.regX = croppedWidth/2;
       croppedImage.regY = croppedHeight/2;
       croppedImage.on('pressmove',function(e){
+        stage.setChildIndex(e.target,stage.numChildren-1);
         if (!e.target.inPlace){
           e.target.x = e.stageX;
           e.target.y = e.stageY;
@@ -266,7 +283,22 @@ function resize() {
   var bgShape = new createjs.Shape();
   bgShape.graphics.beginFill('#444444').drawRect(0,0,stage.canvas.width,stage.canvas.height);
   contBg.addChild(bgShape);
-  stage.addChild(contBg);
+  if (!menubar[0]) {
+    statusText.x = stage.canvas.width / 2;
+    statusText.y = stage.canvas.height / 2;
+    statusText.font = parseInt(stage.canvas.height/10) + "px Arial";
+    contBg.addChild(statusText);
+    contBg.setChildIndex(statusText,contBg.numChildren - 1);
+    statusText.visible = true;
+    stage.update();
+    return;
+  }
+  else{
+    statusText.visible = false;
+  }
+ stage.addChild(contBg);
+
+
 
   var bbs = stage.canvas.height / 10;  // bar button size
 
@@ -331,7 +363,6 @@ function resize() {
 
   rightTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height,rightBox.image.width*rightBox.scaleX,80/676*stage.canvas.height,stage.canvas.width/100);
   rightCont.addChild(rightTextBox);
-  console.log(lvlDesc[level][1]);
 
   rightText.textAlign = "center";
   rightText.textBaseline = "middle";
@@ -358,8 +389,10 @@ function resize() {
         cil[i][j].y = cil[i][j].correctY;
       }
       else{
+        var marginX = cil[i][j].croppedWidth*sc/2;
+        var marginY = cil[i][j].croppedHeight*sc/2;
         cil[i][j].x = cil[i][j].origX/1200*stage.canvas.width;
-        cil[i][j].y = cil[i][j].origY/676*stage.canvas.height;        
+        cil[i][j].y = cil[i][j].origY/676*stage.canvas.height;
       }
       stage.addChild(cil[i][j]);
     }
