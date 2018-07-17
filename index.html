@@ -1,4 +1,4 @@
-f<!doctype html> 
+<!doctype html> 
 <!-- Copyright (C) 2018 Alkis Georgopoulos <alkisg@gmail.com>. License: GPLv3. -->
 <html lang="el"> 
 <head> 
@@ -83,7 +83,7 @@ f<!doctype html>
     statusText.textAlign = "center";
     statusText.textBaseline = "middle";
     contBg.addChild(statusText);
-
+    resize();
     stage.addChild(contBg);  
     
 
@@ -149,6 +149,7 @@ function queueComplete(event) {
   stage.update();
   initLevel(0);
   window.addEventListener('resize', resize, false);
+  resize();
 }
 
 function initLevel(newLevel) {
@@ -185,8 +186,8 @@ function initLevel(newLevel) {
       var randomRow = Math.floor(randomPiece / lvlColumns);
       var randomCol = randomPiece % lvlColumns;
       cil[randomRow][randomCol].inPlace = false;
-      cil[randomRow][randomCol].origX = 600 - Math.random()*20 + Math.random()*20;
-      cil[randomRow][randomCol].origY = 335 - Math.random()*200 + Math.random()*200;
+      cil[randomRow][randomCol].origX = 600;
+      cil[randomRow][randomCol].origY = 100;
 
 
       /*cil[randomRow][randomCol].origX = 2100/1200*stage.canvas.width + Math.random()*(258/1200*stage.canvas.width);
@@ -246,24 +247,26 @@ function cropImage(imageName){
         }
       });
       croppedImage.on('pressup',function(e){
-      var curP = new createjs.Point(e.stageX,e.stageY);
-      var tarP = new createjs.Point(e.target.correctX,e.target.correctY);
-      var dist = _distance(curP,tarP);
-      if (dist < stage.canvas.width/30){
-        e.target.x = e.target.correctX;
-        e.target.y = e.target.correctY;
-        e.target.inPlace = true;
-      }
-      else{
-        e.target.x = e.target.origX/1200*stage.canvas.width;
-        e.target.y = e.target.origY/676*stage.canvas.height;
-      }
-      stage.update();
-      });
-      croppedImage.croppedWidth = croppedWidth;
-      croppedImage.croppedHeight = croppedHeight;
-      croppedImages[croppedImages.length-1].push(croppedImage);
-    }
+          var curP = new createjs.Point(e.stageX,e.stageY);
+          var tarP = new createjs.Point(e.target.correctX,e.target.correctY);
+          var dist = _distance(curP,tarP);
+          if (dist < stage.canvas.width/30){
+            e.target.x = e.target.correctX;
+            e.target.y = e.target.correctY;
+            e.target.inPlace = true;
+          }
+          else{
+            if (!e.target.inPlace){
+            e.target.x = e.target.origX/1200*stage.canvas.width;
+            e.target.y = e.target.origY/676*stage.canvas.height;
+          }
+          }
+          stage.update();
+        });
+        croppedImage.croppedWidth = croppedWidth;
+        croppedImage.croppedHeight = croppedHeight;
+        croppedImages[croppedImages.length-1].push(croppedImage);
+        }
   }
   return(croppedImages);
   }
