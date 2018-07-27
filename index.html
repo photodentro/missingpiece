@@ -33,9 +33,9 @@
   </canvas>
 <script>
   var stage;
-  var bgShape;
+  var bgImg;
   var statusText;
-  var resourceNames = ["bar_help.svg","bar_home.svg", "bar_previous.svg", "bar_next.svg", "box.svg", "theofilosMA.png", "eggonopoulosMA.png", "ColorfulArchitecture.jpg", "TempleGardens.jpg"];
+  var resourceNames = ['background.svg', 'bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'bar_previous.svg' , 'bar_next.svg', 'box.svg', 'theofilosMA.png', 'eggonopoulosMA.png', 'ColorfulArchitecture.jpg', 'TempleGardens.jpg'];
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -75,9 +75,8 @@
     stage = new createjs.Stage("mainCanvas");
     stage.enableMouseOver();
     contBg = new createjs.Container();
-    bgShape = new createjs.Shape();
-    bgShape.graphics.beginFill("#444444").drawRect(0,0,stage.canvas.width,stage.canvas.height);
-    contBg.addChild(bgShape);
+
+    contBg.addChild(bgImg);
 
     statusText = new createjs.Text("Φόρτωση...", "20px Arial", "black");
     statusText.textAlign = "center";
@@ -113,11 +112,11 @@ function queueFileLoad(event) {
 
 function queueComplete(event) {
   console.log("Finished loading resources");
+  bgImg = new createjs.Bitmap(imgByName("background.svg"));
+  var onMenuClick = [onMenuHome, onMenuHelp, onMenuAbout, onMenuPrevious, onMenuNext];
+  for (i = 0; i < 5; i++) {
 
-  var onMenuClick = [onMenuHelp, onMenuHome, onMenuPrevious, onMenuNext];
-  for (i = 0; i < 4; i++) {
-
-    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf('bar_help.svg')+i]);
+    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf('bar_home.svg')+i]);
     menubar[i].addEventListener("click", onMenuClick[i]);
     menubar[i].addEventListener("mouseover", function(event) {
         // Bring the target on top in its container, mostly for the rotation animation
@@ -132,17 +131,19 @@ function queueComplete(event) {
     stage.addChild(menubar[i]);
     
   }
-  lvlText = new createjs.Text("1", "20px Arial", "white");
+  lvlText = new createjs.Text("1", "20px Arial", "#92063E");
   lvlText.textAlign = "center";
   lvlText.textBaseline = "middle";
   stage.addChild(lvlText);
 
   leftCont = new createjs.Container();
   leftBox = new createjs.Bitmap(imgByName("box.svg"));
+  leftBox.visible = false;
   leftCont.addChild(leftBox);
   leftTextBox = new createjs.Shape();
   rightCont = new createjs.Container();
   rightBox = new createjs.Bitmap(imgByName("box.svg"));
+  rightBox.visible = false;
   rightCont.addChild(rightBox);
   rightTextBox = new createjs.Shape();
 
@@ -167,6 +168,9 @@ function initLevel(newLevel) {
   lvlImageRight = lvlImages[newLevel][1];
   cil = cropImage(lvlImageLeft);
   cir = cropImage(lvlImageRight);
+  leftCont.removeChild(leftText);  
+  rightCont.removeChild(rightText);
+ 
   leftText = new createjs.Text(lvlDesc[level][0],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
   rightText = new createjs.Text(lvlDesc[level][1],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
 
@@ -283,9 +287,8 @@ function resize() {
   }
   // Fill all the canvas with the background
   
-  var bgShape = new createjs.Shape();
-  bgShape.graphics.beginFill('#444444').drawRect(0,0,stage.canvas.width,stage.canvas.height);
-  contBg.addChild(bgShape);
+
+  contBg.addChild(bgImg);
   if (!menubar[0]) {
     statusText.x = stage.canvas.width / 2;
     statusText.y = stage.canvas.height / 2;
@@ -302,14 +305,27 @@ function resize() {
  stage.addChild(contBg);
 
 
-
+  bgImg.scaleX = stage.canvas.width / bgImg.image.width;
+  bgImg.scaleY = stage.canvas.height / bgImg.image.height;  
   var bbs = stage.canvas.height / 10;  // bar button size
 
   var bbm = bbs / 5;  // bar button margin
   // TODO: local/global variables, eslint...
-  for (i = 0; i < 4; i++) {
+   for (i = 0; i < 3; i++) {
     // Leave one space for the level
-    if (i < 3)
+    menubar[i].scaleX = bbs / menubar[i].image.width;
+    menubar[i].scaleY = bbs / menubar[i].image.height;
+    menubar[i].regX = menubar[i].image.width / 2;
+    menubar[i].regY = menubar[i].image.height / 2;
+    menubar[i].x = (i + 1)*bbm + bbs/2 + i*bbs;
+    menubar[i].y = stage.canvas.height - bbm - bbs/2;
+    // These copies are used to preserve the original scale on mouseover
+    menubar[i].savedscaleX = menubar[i].scaleX;
+    menubar[i].savedscaleY = menubar[i].scaleY;
+  }
+  for (i = 3; i < 5; i++) {
+    // Leave one space for the level
+    if (i < 4)
       j = i;
     else
       j = i + 1;
@@ -317,21 +333,29 @@ function resize() {
     menubar[i].scaleY = bbs / menubar[i].image.height;
     menubar[i].regX = menubar[i].image.width / 2;
     menubar[i].regY = menubar[i].image.height / 2;
-    menubar[i].x = (j + 1)*bbm + bbs/2 + j*bbs;
+    menubar[i].x = stage.canvas.width*0.1 + (j + 1)*bbm + 2*bbs + j*bbs;
     menubar[i].y = stage.canvas.height - bbm - bbs/2;
-    menubar[i].visible = true;
     // These copies are used to preserve the original scale on mouseover
     menubar[i].savedscaleX = menubar[i].scaleX;
     menubar[i].savedscaleY = menubar[i].scaleY;
-    stage.addChild(menubar[i]);
   }
 
-  lvlText.text = level + 1;
-  lvlText.x = (3 + 1)*bbm + bbs/2 + 3*bbs;
-  lvlText.y = stage.canvas.height - bbm/2 - bbs/2;
-  lvlText.font = parseInt(2*bbs/2) + "px Arial";
-  stage.addChild(lvlText);
 
+  lvlText.text = level + 1;
+  lvlText.x = stage.canvas.width*0.495;
+  lvlText.y = stage.canvas.height - bbm - bbs/2;
+  lvlText.font = parseInt(2*bbs/2) + "px Arial";
+
+  // If level is single digit, move lvlText and bar_previous a bit left
+  if (level + 1 < 10) {
+    lvlText.x -= bbs/4;
+    menubar[4].x -= bbs/2;
+  }
+
+  for (var i=0; i<5; i++){
+    stage.addChild(menubar[i]);
+  }
+  stage.addChild(lvlText);
 
   leftCont.x = 40/1200*stage.canvas.width;
   leftCont.y = 30/676*stage.canvas.height;
@@ -342,15 +366,17 @@ function resize() {
   leftBox.scaleY = stage.canvas.height/676;
   leftCont.addChild(leftBox);
   leftTextBox.graphics.clear();
-  leftTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height, leftBox.image.width*leftBox.scaleX, 80/676*stage.canvas.height,stage.canvas.width/100);
+  leftTextBox.graphics.beginFill('black').drawRoundRect(0,490/676*stage.canvas.height, leftBox.image.width*leftBox.scaleX, 70/676*stage.canvas.height,stage.canvas.width/100);
+  leftTextBox.alpha = 0.5;
   leftCont.addChild(leftTextBox);
 
   
   leftText.textAlign = "center";
   leftText.textBaseline = "middle";
 
+
   leftText.x = 214/1200*stage.canvas.width;
-  leftText.y = 500/676*stage.canvas.height;
+  leftText.y = 520/676*stage.canvas.height;
   leftText.font = parseInt(stage.canvas.height/30) + 'px Arial';
   leftCont.addChild(leftText);
 
@@ -364,14 +390,14 @@ function resize() {
   rightCont.addChild(rightBox);
   rightTextBox.graphics.clear();
 
-  rightTextBox.graphics.beginFill('#222222').drawRoundRect(0,470/676*stage.canvas.height,rightBox.image.width*rightBox.scaleX,80/676*stage.canvas.height,stage.canvas.width/100);
+  rightTextBox.graphics.beginFill('black').drawRoundRect(0,490/676*stage.canvas.height,rightBox.image.width*rightBox.scaleX,70/676*stage.canvas.height,stage.canvas.width/100);
+  rightTextBox.alpha = 0.5;
   rightCont.addChild(rightTextBox);
 
   rightText.textAlign = "center";
   rightText.textBaseline = "middle";
-
   rightText.x = 214/1200*stage.canvas.width;
-  rightText.y = 500/676*stage.canvas.height;
+  rightText.y = 520/676*stage.canvas.height;
   rightText.font = parseInt(stage.canvas.height/30) + 'px Arial';
   rightCont.addChild(rightText);
 
@@ -448,6 +474,9 @@ function onMenuNext(event) {
   initLevel((level+1) % lvlPieces.length);
 }
 
+function onMenuAbout(event) {
+    window.open("credits/index_DS_II.html");
+  }
 </script>
 </body>
 </html>
