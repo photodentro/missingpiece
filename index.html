@@ -6,7 +6,7 @@
   <!-- Using this metatag users can't scale the page using pinchIn/out gestures on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>Συμπληρώστε τους πίνακες</title> 
-  <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>-->
+  <script src="easeljs.min.js"></script>-->
   <style type="text/css">
     /* Remove margins and HTML scrollbars */
     body, html  {
@@ -35,7 +35,7 @@
   var stage;
   var bgImg;
   var statusText;
-  var resourceNames = ['background.svg', 'bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'bar_previous.svg' , 'bar_next.svg', 'box.svg', 'theofilosMA.png', 'eggonopoulosMA.png', 'ColorfulArchitecture.jpg', 'TempleGardens.jpg'];
+  var resourceNames = ['background.svg', 'bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'bar_previous.svg' , 'bar_next.svg', 'box.svg', 'theofilosMA.png', 'eggonopoulosMA.png', 'ColorfulArchitecture.jpg', 'TempleGardens.jpg','tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg','signac.jpg','seurat.jpg'];
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -70,6 +70,45 @@
   }
 
 
+  function theHelp_hide(){
+      theHelpBox.visible = false;
+      theHelpText.visible = false;
+      stage.update();
+  }
+  function theHelp(msg){
+    this.create = function(){
+      theHelpBox = new createjs.Shape();
+      theHelpBox.on("click",function(){
+        theHelp_hide();
+      });
+      theHelpText = new createjs.Text();
+      theHelpText.text = msg;
+    }
+    this.resize = function(){
+        theHelpBox.graphics.clear();
+        theHelpBox.x = 0.25*stage.canvas.width;
+        theHelpBox.y = 0.25*stage.canvas.height;
+        theHelpBox.graphics.beginFill('#ffffff').setStrokeStyle(2).beginStroke('#000000').drawRoundRect(0,0,stage.canvas.width/2,stage.canvas.height/2,stage.canvas.height/20);
+        theHelpBox.shadow = new createjs.Shadow("#000000", 5, 5, 10);
+        stage.addChild(theHelpBox);
+        theHelpText.x = theHelpBox.x + stage.canvas.width/20;
+        theHelpText.y = theHelpBox.y + stage.canvas.width/20;
+        theHelpText.font = parseInt(stage.canvas.height/15) + "px serif";
+        theHelpText.lineWidth = stage.canvas.width/2.3;
+        stage.addChild(theHelpText);
+
+    }
+    this.show = function(){
+      stage.addChild(theHelpBox);
+      stage.addChild(theHelpText);
+      theHelpBox.visible = true;
+      theHelpText.visible = true;
+      stage.update();
+    }
+    this.hide = theHelp_hide;
+  }
+
+
   function init(){
     console.clear();
     stage = new createjs.Stage("mainCanvas");
@@ -82,6 +121,10 @@
     statusText.textAlign = "center";
     statusText.textBaseline = "middle";
     contBg.addChild(statusText);
+    theHelp = new theHelp("Συμπληρώστε τα κομμάτια που λείπουν από τις εικόνες.")
+    theHelp.create();
+    theHelp.hide();
+
     resize();
     stage.addChild(contBg);  
     
@@ -104,10 +147,12 @@ function imgByName(name) {
 
 function queueFileLoad(event) {
   resourcesLoaded++;
+  console.log(resourcesLoaded,resourceNames.length);
   statusText.text = "Φόρτωση " + parseInt(100*resourcesLoaded/resourceNames.length) + " %";
   stage.update();
-  if (resourcesLoaded == resourceNames.length)
+  if (resourcesLoaded == resourceNames.length){
     queueComplete(event);
+  }
 }
 
 function queueComplete(event) {
@@ -156,12 +201,22 @@ function queueComplete(event) {
 function initLevel(newLevel) {
   level = newLevel;
   lvlPieces = [{'rows':2,'columns':2},
-    {'rows':5,'columns':5}];
+  	{'rows':3,'columns':3},
+    {'rows':5,'columns':5},
+    {'rows':8,'columns':8}];
   lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],
-    ['TempleGardens.jpg','ColorfulArchitecture.jpg']];
-  lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ','Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],
-    ["Temple Gardens\nPaul Klee","Colorful Architecture\nPaul Klee"]];
-  lvlPositions = [2,6];
+    		   ['tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg'],
+    		   ['TempleGardens.jpg','ColorfulArchitecture.jpg'],
+    		   ['signac.jpg','seurat.jpg']];
+  lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ',
+  			  'Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],
+  			 ['Καφενείον "ΤΟ ΝΕΟΝ" (Ημέρα)\nΓιάννης Τσαρούχης',
+  			  'Καφενείον "ΤΟ ΝΕΟΝ" (Νύχτα)\nΓιάννης Τσαρούχης'],
+    		 ['Temple Gardens\nPaul Klee',
+    		  'Colorful Architecture\nPaul Klee'],
+    		 ['Signac\nSignac',
+    		  'Seurat\nSeurat']];
+  lvlPositions = [2,4,6,10];
   lvlRows = lvlPieces[newLevel]['rows'];
   lvlColumns = lvlPieces[newLevel]['columns'];
   lvlImageLeft = lvlImages[newLevel][0];
@@ -454,12 +509,14 @@ function resize() {
     }
   }
 
+  theHelp.resize();
+
   stage.update();
 }
 
 
 function onMenuHelp(event) {
-  alert("Επιλέξτε εικόνες από το κάτω κουτί και βάλτε τις στο δεξί κουτί έτσι ώστε να ταιριάζουν με το αριστερό κουτί.");
+  theHelp.show();
 }
 
 function onMenuHome(event) {
