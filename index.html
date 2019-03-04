@@ -252,8 +252,8 @@ function initLevel(newLevel) {
       var randomRow = Math.floor(randomPiece / llvlColumns);
       var randomCol = randomPiece % llvlColumns;
       cil[randomRow][randomCol].inPlace = false;
-      cil[randomRow][randomCol].origX = 600;
-      cil[randomRow][randomCol].origY = 100;
+      cil[randomRow][randomCol].origX = 650-100*Math.random();
+      cil[randomRow][randomCol].origY = 400-300*Math.random();
 
 
       /*cil[randomRow][randomCol].origX = 2100/1200*stage.canvas.width + Math.random()*(258/1200*stage.canvas.width);
@@ -278,8 +278,8 @@ function initLevel(newLevel) {
       var randomCol = randomPiece % rlvlColumns;
       cir[randomRow][randomCol].inPlace = false;
       //var aPosition = Math.floor(Math.random()*possiblePositions.length);
-      cir[randomRow][randomCol].origX = 600;
-      cir[randomRow][randomCol].origY = 335;
+      cir[randomRow][randomCol].origX = 650-100*Math.random();
+      cir[randomRow][randomCol].origY = 400-300*Math.random();
       /*cir[randomRow][randomCol].origX = possiblePositions[aPosition]['x'];
       cir[randomRow][randomCol].origY = possiblePositions[aPosition]['y'];*/
       //possiblePositions.splice(aPosition,1);
