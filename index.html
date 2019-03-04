@@ -115,11 +115,12 @@
     console.clear();
     stage = new createjs.Stage("mainCanvas");
     stage.enableMouseOver();
+    createjs.Touch.enable(stage);
     contBg = new createjs.Container();
 
     contBg.addChild(bgImg);
 
-    statusText = new createjs.Text("Φόρτωση...", "20px Arial", "black");
+    statusText = new createjs.Text("Φόρτωση...", "20px Arial", "white");
     statusText.textAlign = "center";
     statusText.textBaseline = "middle";
     contBg.addChild(statusText);
@@ -205,7 +206,7 @@ function initLevel(newLevel) {
   	{'lrows':3,'lcolumns':3,'rrows':3,'rcolumns':3},
   	{'lrows':4,'lcolumns':4,'rrows':4,'rcolumns':4},
     {'lrows':5,'lcolumns':5,'rrows':5,'rcolumns':5},
-    {'lrows':9,'lcolumns':6,'rrows':8,'rcolumns':8}];
+    {'lrows':8,'lcolumns':5,'rrows':7,'rcolumns':7}];
   lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],
     		   ['tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg'],
     		   ['threemusicians1.jpg','threemusicians2.jpg'],
