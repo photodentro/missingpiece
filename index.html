@@ -35,7 +35,7 @@
   var stage;
   var bgImg;
   var statusText;
-  var resourceNames = ['background.svg', 'bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'bar_previous.svg' , 'bar_next.svg', 'box.svg', 'theofilosMA.png', 'eggonopoulosMA.png', 'ColorfulArchitecture.jpg', 'TempleGardens.jpg','tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg','signac.jpg','seurat.jpg'];
+  var resourceNames = ['background.svg', 'bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'bar_previous.svg' , 'bar_next.svg', 'box.svg', 'theofilosMA.png', 'eggonopoulosMA.png', 'ColorfulArchitecture.jpg', 'TempleGardens.jpg','tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg','signac.jpg','seurat.jpg','threemusicians1.jpg','threemusicians2.jpg'];
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -54,8 +54,10 @@
   var rightTextBox;
   var leftText;
   var rightText;  
-  var lvlRows;
-  var lvlColumns;
+  var rlvlRows;
+  var rlvlColumns;
+  var llvlRows;
+  var llvlColumns;
   var lvlPieces;
   var lvlPositions;
   var cil;
@@ -147,7 +149,6 @@ function imgByName(name) {
 
 function queueFileLoad(event) {
   resourcesLoaded++;
-  console.log(resourcesLoaded,resourceNames.length);
   statusText.text = "Φόρτωση " + parseInt(100*resourcesLoaded/resourceNames.length) + " %";
   stage.update();
   if (resourcesLoaded == resourceNames.length){
@@ -200,29 +201,35 @@ function queueComplete(event) {
 
 function initLevel(newLevel) {
   level = newLevel;
-  lvlPieces = [{'rows':2,'columns':2},
-  	{'rows':3,'columns':3},
-    {'rows':5,'columns':5},
-    {'rows':8,'columns':8}];
+  lvlPieces = [{'lrows':2,'lcolumns':2,'rrows':2,'rcolumns':2},
+  	{'lrows':3,'lcolumns':3,'rrows':3,'rcolumns':3},
+  	{'lrows':4,'lcolumns':4,'rrows':4,'rcolumns':4},
+    {'lrows':5,'lcolumns':5,'rrows':5,'rcolumns':5},
+    {'lrows':9,'lcolumns':6,'rrows':8,'rcolumns':8}];
   lvlImages = [['theofilosMA.png','eggonopoulosMA.png'],
     		   ['tsarouxis_neon_mera.jpg','tsarouxis_neon_nyxta.jpg'],
+    		   ['threemusicians1.jpg','threemusicians2.jpg'],
     		   ['TempleGardens.jpg','ColorfulArchitecture.jpg'],
     		   ['signac.jpg','seurat.jpg']];
   lvlDesc = [['Ο Μέγας Αλέξανδρος\nΘεόφιλος Χατζημιχαήλ',
   			  'Μέγας Αλέξανδρος και Παύλος Μελάς\nΝίκος Εγγονόπουλος'],
   			 ['Καφενείον "ΤΟ ΝΕΟΝ" (Ημέρα)\nΓιάννης Τσαρούχης',
   			  'Καφενείον "ΤΟ ΝΕΟΝ" (Νύχτα)\nΓιάννης Τσαρούχης'],
+  			 ['Τρεις Μουσικοί\nΠάμπλο Πικάσο',
+  			  'Τρεις Μουσικοί\nΠάμπλο Πικάσο'],
     		 ['Temple Gardens\nPaul Klee',
     		  'Colorful Architecture\nPaul Klee'],
     		 ['Signac\nSignac',
     		  'Seurat\nSeurat']];
-  lvlPositions = [2,4,6,10];
-  lvlRows = lvlPieces[newLevel]['rows'];
-  lvlColumns = lvlPieces[newLevel]['columns'];
+  lvlPositions = [2,4,6,6,10];
+  rlvlRows = lvlPieces[newLevel]['rrows'];
+  rlvlColumns = lvlPieces[newLevel]['rcolumns'];
+  llvlRows = lvlPieces[newLevel]['lrows'];
+  llvlColumns = lvlPieces[newLevel]['lcolumns'];
   lvlImageLeft = lvlImages[newLevel][0];
   lvlImageRight = lvlImages[newLevel][1];
-  cil = cropImage(lvlImageLeft);
-  cir = cropImage(lvlImageRight);
+  cil = cropImage(lvlImageLeft,llvlRows,llvlColumns);
+  cir = cropImage(lvlImageRight,rlvlRows,rlvlColumns);
   leftCont.removeChild(leftText);  
   rightCont.removeChild(rightText);
  
@@ -230,20 +237,20 @@ function initLevel(newLevel) {
   rightText = new createjs.Text(lvlDesc[level][1],parseInt(stage.canvas.height/30) + 'px Arial', 'white');
 
   //mark the missing pieces of the left side
-  for (var i=0; i<lvlRows; i++){
-    for (var j=0; j<lvlColumns; j++){
+  for (var i=0; i<llvlRows; i++){
+    for (var j=0; j<llvlColumns; j++){
       cil[i][j].inPlace = true;
     }
   }
   for (var i=0; i<lvlPositions[level]/2; i++){
       var randomPieces = [];
-      var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
+      var randomPiece = Math.floor(Math.random()*llvlRows*llvlColumns);
       while (randomPieces.indexOf(randomPiece)>=0){
-        randomPiece = Math.random(lvlRows*lvlColumns);
+        randomPiece = Math.random(llvlRows*llvlColumns);
       }
       randomPieces.push(randomPiece);
-      var randomRow = Math.floor(randomPiece / lvlColumns);
-      var randomCol = randomPiece % lvlColumns;
+      var randomRow = Math.floor(randomPiece / llvlColumns);
+      var randomCol = randomPiece % llvlColumns;
       cil[randomRow][randomCol].inPlace = false;
       cil[randomRow][randomCol].origX = 600;
       cil[randomRow][randomCol].origY = 100;
@@ -255,20 +262,20 @@ function initLevel(newLevel) {
   }
 
   //mark the missing pieces of the right side
-  for (var i=0; i<lvlRows; i++){
-    for (var j=0; j<lvlColumns; j++){
+  for (var i=0; i<rlvlRows; i++){
+    for (var j=0; j<rlvlColumns; j++){
       cir[i][j].inPlace = true;
     }
   }
   for (var i=0; i<lvlPositions[level]/2; i++){
       var randomPieces = [];
-      var randomPiece = Math.floor(Math.random()*lvlRows*lvlColumns);
+      var randomPiece = Math.floor(Math.random()*rlvlRows*rlvlColumns);
       while (randomPieces.indexOf(randomPiece)>=0){
-        randomPiece = Math.random(lvlRows*lvlColumns);
+        randomPiece = Math.random(rlvlRows*rlvlColumns);
       }
       randomPieces.push(randomPiece);
-      var randomRow = Math.floor(randomPiece / lvlColumns);
-      var randomCol = randomPiece % lvlColumns;
+      var randomRow = Math.floor(randomPiece / rlvlColumns);
+      var randomCol = randomPiece % rlvlColumns;
       cir[randomRow][randomCol].inPlace = false;
       //var aPosition = Math.floor(Math.random()*possiblePositions.length);
       cir[randomRow][randomCol].origX = 600;
@@ -284,7 +291,7 @@ function initLevel(newLevel) {
 
 }
 
-function cropImage(imageName){
+function cropImage(imageName,lvlRows,lvlColumns){
   //takes the image name and gives four cropped draggable objects
   
   croppedImages = [];
@@ -342,7 +349,7 @@ function resize() {
   }
   // Fill all the canvas with the background
   
-
+  stage.removeAllChildren();
   contBg.addChild(bgImg);
   if (!menubar[0]) {
     statusText.x = stage.canvas.width / 2;
@@ -457,8 +464,8 @@ function resize() {
   rightCont.addChild(rightText);
 
   
-  for (var i=0; i<lvlRows; i++){
-    for (var j=0; j<lvlColumns; j++){
+  for (var i=0; i<llvlRows; i++){
+    for (var j=0; j<llvlColumns; j++){
       var dw = 380*stage.canvas.width/1200;
       var dh = 400*stage.canvas.height/676;
       var scaleHor = dw/cil[i][j].image.width;
@@ -486,8 +493,8 @@ function resize() {
 
 
 
-  for (var i=0; i<lvlRows; i++){
-    for (var j=0; j<lvlColumns; j++){
+  for (var i=0; i<rlvlRows; i++){
+    for (var j=0; j<rlvlColumns; j++){
       var dw = 380*stage.canvas.width/1200;
       var dh = 400*stage.canvas.height/676;
       var scaleHor = dw/cir[i][j].image.width;
