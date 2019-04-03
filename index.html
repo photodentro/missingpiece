@@ -31,6 +31,7 @@
   <canvas id="mainCanvas" width="320" height="180">
     Your browser doesn't support HTML5!
   </canvas>
+  <audio id="audiohelp"><source src="resource/help.mp3" type="audio/mp3"></audio>
 <script>
   var stage;
   var bgImg;
@@ -75,6 +76,7 @@
   function theHelp_hide(){
       theHelpBox.visible = false;
       theHelpText.visible = false;
+      document.getElementById("audiohelp").pause();
       stage.update();
   }
   function theHelp(msg){
@@ -105,6 +107,8 @@
       stage.addChild(theHelpText);
       theHelpBox.visible = true;
       theHelpText.visible = true;
+      document.getElementById("audiohelp").currentTime = 0;
+      document.getElementById("audiohelp").play();
       stage.update();
     }
     this.hide = theHelp_hide;
@@ -124,7 +128,7 @@
     statusText.textAlign = "center";
     statusText.textBaseline = "middle";
     contBg.addChild(statusText);
-    theHelp = new theHelp("Συμπληρώστε τα κομμάτια που λείπουν από τις εικόνες.")
+    theHelp = new theHelp("Συμπλήρωσε τους πίνακες με τα σωστά κομμάτια που βρίσκονται μέσα στο κουτί.")
     theHelp.create();
     theHelp.hide();
 
@@ -220,8 +224,8 @@ function initLevel(newLevel) {
   			  'Τρεις Μουσικοί\nΠάμπλο Πικάσο'],
     		 ['Temple Gardens\nPaul Klee',
     		  'Colorful Architecture\nPaul Klee'],
-    		 ['Signac\nSignac',
-    		  'Seurat\nSeurat']];
+    		 ['The Forest at Pontaubert\nGeorge Seurat',
+    		  'Study for "A Sunday on La Grande Jatte"\nGeorge Seurat']];
   lvlPositions = [2,4,6,6,10];
   rlvlRows = lvlPieces[newLevel]['rrows'];
   rlvlColumns = lvlPieces[newLevel]['rcolumns'];
@@ -475,7 +479,11 @@ function resize() {
       cil[i][j].scaleX = sc;
       cil[i][j].scaleY = sc;
       cil[i][j].correctX = 1.5*leftCont.x + j*sc*(cil[i][j].croppedWidth)+sc*cil[i][j].croppedWidth/2 - 1;
-      cil[i][j].correctY = 2*leftCont.y + i*sc*(cil[i][j].croppedHeight)+sc*cil[i][j].croppedHeight/2 - 1;
+      var imageHeight = cil[i][j].croppedHeight*llvlRows;
+      var boxHeight = leftBox.image.height;
+      var marginTop = (boxHeight - imageHeight)/2;
+      marginTop *= sc; //for scaling
+      cil[i][j].correctY = - marginTop*sc + 2*leftCont.y + i*sc*(cil[i][j].croppedHeight)+sc*cil[i][j].croppedHeight/2 - 1;
       if (cil[i][j].inPlace){
         cil[i][j].x = cil[i][j].correctX;
         cil[i][j].y = cil[i][j].correctY;
@@ -504,7 +512,11 @@ function resize() {
       cir[i][j].scaleX = sc;
       cir[i][j].scaleY = sc;
       cir[i][j].correctX = rightCont.x + 0.5*leftCont.x + j*sc*(cir[i][j].croppedWidth)+sc*cir[i][j].croppedWidth/2 - 1;
-      cir[i][j].correctY = rightCont.y + 1*leftCont.y + i*sc*(cir[i][j].croppedHeight)+sc*cir[i][j].croppedHeight/2 - 1;
+      imageHeight = cir[i][j].croppedHeight*rlvlColumns;
+      boxHeight = rightBox.image.height;
+      marginTop = (boxHeight - imageHeight)/2;
+      marginTop *= sc; //for scaling
+      cir[i][j].correctY = -marginTop*sc + rightCont.y + 1*leftCont.y + i*sc*(cir[i][j].croppedHeight)+sc*cir[i][j].croppedHeight/2 - 1;
       if (cir[i][j].inPlace){
         cir[i][j].x = cir[i][j].correctX;
         cir[i][j].y = cir[i][j].correctY;
